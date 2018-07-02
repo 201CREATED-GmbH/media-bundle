@@ -14,7 +14,7 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->scalarNode('base_upload_path')->defaultValue('%kernel.root_dir%/../../public/uploads')->end()
+                ->scalarNode('base_upload_path')->defaultValue('%kernel.root_dir%/../public/uploads')->end()
                 ->arrayNode('objects')
                     ->prototype('array')
                     ->children()
