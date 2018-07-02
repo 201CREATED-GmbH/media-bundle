@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <!-- Media -->
+
+        <service id="c201_media.manager.media_manager"
+                 class="C201\MediaBundle\Manager\MediaManager">
+            <argument type="expression">
+                service('doctrine').getRepository('C201MediaBundle:Media')
+            </argument>
+        </service>
+
+        <service id="c201_media.param_converter.media"
+                 class="C201\MediaBundle\Request\ParamConverter\MediaParamConverter">
+            <tag name="request.param_converter" converter="media" priority="10" />
+            <argument type="service" id="c201_media.manager.media_manager"/>
+        </service>
+
+
+        <!-- DownloadHistory -->
+
+        <service id="c201_media.manager.download_history"
+                 class="C201\MediaBundle\Manager\DownloadHistoryManager">
+            <argument type="expression">
+                service('doctrine').getRepository('C201MediaBundle:DownloadHistory')
+            </argument>
+        </service>
+
+    </services>
+</container>

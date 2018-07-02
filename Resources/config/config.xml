@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <!-- configuration -->
+
+        <service id="c201_media.configuration"
+                 class="C201\MediaBundle\Model\Configuration\MediaConfiguration"
+                 public="true">
+            <argument>%c201_media.base_upload_path%</argument>
+            <argument>%c201_media.objects%</argument>
+        </service>
+
+
+        <!-- main entry points -->
+
+        <service id="c201_media.media"
+                 class="C201\MediaBundle\Model\Media" public="true">
+            <argument type="service" id="c201_media.configuration"/>
+            <argument type="service" id="c201_media.storage.storage_backend_pool"/>
+        </service>
+
+        <service id="c201_media.media_library"
+                 class="C201\MediaBundle\Model\MediaLibrary">
+            <argument type="service" id="c201_media.configuration"/>
+            <argument type="service" id="c201_media.manager.media_manager"/>
+            <argument type="service" id="c201_media.storage.careful_file_storer"/>
+            <argument type="service" id="c201_media.filesystem_helper"/>
+        </service>
+
+
+        <!-- storage -->
+
+        <service id="c201_media.storage.storage_backend_pool"
+                 class="C201\MediaBundle\Model\Storage\StorageBackendPool"
+                 public="false"/>
+
+
+        <service id="c201_media.storage.storage_backend_file"
+                 class="C201\MediaBundle\Model\Storage\StorageBackendFile"
+                 public="false">
+            <tag alias="file" name="c201_media.storage_backend"/>
+            <argument type="service" id="c201_media.model.path_parser"/>
+            <argument type="service" id="c201_media.storage.careful_file_storer"/>
+        </service>
+
+        <service id="c201_media.storage.storage_backend_media_library"
+                 class="C201\MediaBundle\Model\Storage\StorageBackendMediaLibrary"
+                 public="false">
+            <tag alias="media_library" name="c201_media.storage_backend"/>
+            <argument type="service" id="c201_media.media_library"/>
+            <argument type="service" id="router.default"/>
+        </service>
+
+
+        <!-- storage / post processor -->
+
+        <service id="c201_media.storage.post_processor_pool"
+                 class="C201\MediaBundle\Model\Storage\PostProcessor\PostProcessorPool"
+                 public="false">
+        </service>
+
+        <service id="c201_media.storage.post_processor.pdf_first_page"
+                 class="C201\MediaBundle\Model\Storage\PostProcessor\PdfFirstPagePreview"
+                 public="false">
+            <tag name="c201_media.storage.post_processor" alias="pdf_first_page"/>
+        </service>
+
+        <service id="c201_media.storage.careful_file_storer"
+                 class="C201\MediaBundle\Model\Storage\CarefulFileStorer">
+            <argument type="service" id="c201_media.configuration"/>
+            <argument type="service" id="c201_media.storage.post_processor_pool"/>
+        </service>
+
+
+        <service id="c201_media.model.path_parser"
+                 class="C201\MediaBundle\Model\Storage\PathParser">
+            <argument type="service" id="c201_media.model.media_functions"/>
+        </service>
+
+
+        <service id="c201_media.form_type.media_type"
+                 class="C201\MediaBundle\Form\Type\MediaType">
+            <argument type="service" id="c201_media.manager.media_manager"/>
+            <tag name="form.type"/>
+        </service>
+
+        <service id="c201_media.model.media_functions"
+                 class="C201\MediaBundle\Model\MediaFunctions"/>
+
+        <service id="c201_media.entity.listener.file_save_listener"
+                 class="C201\MediaBundle\Entity\Listener\MediaStoreListener">
+
+            <tag name="doctrine.event_listener" event="prePersist"/>
+            <tag name="doctrine_mongodb.odm.event_listener" event="prePersist"/>
+
+            <tag name="doctrine.event_listener" event="postPersist"/>
+            <tag name="doctrine_mongodb.odm.event_listener" event="postPersist"/>
+
+            <tag name="doctrine.event_listener" event="preUpdate"/>
+            <tag name="doctrine_mongodb.odm.event_listener" event="preUpdate"/>
+
+            <tag name="doctrine.event_listener" event="postUpdate"/>
+            <tag name="doctrine_mongodb.odm.event_listener" event="postUpdate"/>
+
+            <argument type="service" id="service_container"/>
+        </service>
+
+
+        <service id="c201_media.filesystem_helper"
+                 class="C201\MediaBundle\Model\FilesystemHelper">
+        </service>
+
+        <service id="twig.extension.media"
+                 class="C201\MediaBundle\Twig\Extension\MediaExtension"
+                 public="false">
+            <tag name="twig.extension"/>
+            <argument type="service" id="c201_media.media"/>
+            <argument type="service" id="c201_media.media_library"/>
+            <argument>%kernel.root_dir%/../web</argument>
+        </service>
+    </services>
+</container>

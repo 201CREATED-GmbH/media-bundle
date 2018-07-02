@@ -1,0 +1,36 @@
+{% block file_widget %}
+    {% spaceless %}
+        {% if path|default(false) %}
+        <div>
+            {% if preview == "lightbox" %}
+                <a href="{{ path }}" class="superfancybox" title="{{ filename }}"><img src="{{ path | imagine_filter(imagine_name) }}"></a>
+            {% else %}
+                <a href="{{ path }}" class="btn"><i class="icon-download"></i> {{ filename }}</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        <div>
+            {{ block('form_widget_simple') }}
+        </div>
+    {% endspaceless %}
+{% endblock %}
+
+{% block media_widget %}
+    {% if form.vars.data and form.vars.preview %}
+        <img src="{{ form.parent.vars.data|path_media(form.vars.name) }}" class="img-fluid img-polaroid">
+    {% endif %}
+
+    {{ form_widget(form.value) }}
+
+    {% if form.library is defined %}
+        {{ form_widget(form.library) }}
+    {% endif %}
+
+    {% if form.upload is defined %}
+        {{ form_widget(form.upload) }}
+    {% endif %}
+
+    {% if form.remove is defined %}
+        {{ form_widget(form.remove, {'label': 'löschen'}) }}
+    {% endif %}
+{% endblock %}
