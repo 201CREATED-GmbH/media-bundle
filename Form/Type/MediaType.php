@@ -49,7 +49,9 @@ class MediaType extends AbstractType
         ;
 
         if ($options['can_upload']) {
-            $builder->add('upload', FileType::class);
+            $builder->add('upload', FileType::class, [
+                'constraints' => $options['file_constraints'],
+            ]);
         }
 
         if ($options['media_library_owner'] && $options['media_library_context']) {
@@ -97,6 +99,7 @@ class MediaType extends AbstractType
                 // can choose from media library
                 'media_library_owner'   => null,
                 'media_library_context' => null,
+                'file_constraints'      => [],
             ]
         );
     }

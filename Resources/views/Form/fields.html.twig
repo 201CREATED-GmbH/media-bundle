@@ -1,5 +1,5 @@
 {% block media_widget %}
-    {% if form.vars.data and form.vars.preview %}
+    {% if form.vars.data and form.vars.preview and form.vars.valid %}
         <img src="{{ form.parent.vars.data|path_media(form.vars.name) }}" class="img-fluid img-polaroid">
     {% endif %}
 
@@ -11,6 +11,7 @@
 
     {% if form.upload is defined %}
         {{ form_widget(form.upload) }}
+        {{ form_errors(form.upload) }}
     {% endif %}
 
     {% if form.remove is defined %}
