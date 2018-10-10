@@ -90,7 +90,7 @@ class StorageBackendFile implements StorageBackendInterface
         return sprintf(
             '/uploads/%s/%s',
             $this->pathParser->parse($config->getUploadPath(), new ObjectFileContainer($objectField->getObject())),
-            $filename
+            rawurlencode($filename)
         );
     }
 }
