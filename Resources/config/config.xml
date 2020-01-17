@@ -119,7 +119,7 @@
             <tag name="twig.extension"/>
             <argument type="service" id="c201_media.media"/>
             <argument type="service" id="c201_media.media_library"/>
-            <argument>%kernel.root_dir%/../web</argument>
+            <argument>%kernel.project_dir%/public</argument>
         </service>
     </services>
 </container>
