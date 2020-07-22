@@ -37,7 +37,7 @@ class ClearUnrelatedMediaCommand extends ContainerAwareCommand
         $media = $this->getContainer()->get('c201_media.media');
         $pathParser = $this->getContainer()->get('c201_media.model.path_parser');
         $configuration = $this->getContainer()->get('c201_media.configuration');
-        $webDir = realpath($this->getContainer()->getParameter('kernel.root_dir').'/../web');
+        $webDir = realpath($this->getContainer()->getParameter('kernel.project_dir').'/public');
 
         foreach ($configuration->getClassesUnderControl() as $class) {
             try {

@@ -8,11 +8,13 @@ use C201\MediaBundle\Manager\MediaManager;
 use C201\MediaBundle\Model\Media as MediaModel;
 use C201\MediaBundle\Model\MediaLibrary;
 use C201\MediaBundle\Model\Object\ObjectField;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFilter;
 
 /**
  * Twig extension for displaying Media
  */
-class MediaExtension extends \Twig_Extension
+class MediaExtension extends AbstractExtension
 {
     /**
      * @var MediaModel
@@ -47,20 +49,20 @@ class MediaExtension extends \Twig_Extension
     public function getFilters()
     {
         return [
-            new \Twig_SimpleFilter('path_media', function ($object, $fieldName, $preview = false) {
+            new TwigFilter('path_media', function ($object, $fieldName, $preview = false) {
                 return $this->media->getPath(new ObjectField($object, $fieldName), $preview);
             }),
-            new \Twig_SimpleFilter('path_media_root', function ($object, $fieldName, $preview = false) {
+            new TwigFilter('path_media_root', function ($object, $fieldName, $preview = false) {
                 $path = $this->media->getPath(new ObjectField($object, $fieldName), $preview);
 
                 return $this->webDir . '/' . $path;
             }),
-            new \Twig_SimpleFilter('media_mime_type', function ($object, $fieldName, $preview = false) {
+            new TwigFilter('media_mime_type', function ($object, $fieldName, $preview = false) {
                 $path = $this->webDir . '/' . $this->media->getPath(new ObjectField($object, $fieldName), $preview);
 
                 return mime_content_type($path);
             }),
-            new \Twig_SimpleFilter('media_pdf_images', function ($object, $fieldName, $preview = false) {
+            new TwigFilter('media_pdf_images', function ($object, $fieldName, $preview = false) {
                 $path = $this->webDir . '/' . $this->media->getPath(new ObjectField($object, $fieldName), $preview);
 
                 $pdfImages = [];
@@ -74,7 +76,7 @@ class MediaExtension extends \Twig_Extension
 
                 return $pdfImages;
             }),
-            new \Twig_SimpleFilter('path_media_library', function (MediaDocument $media, $preview = false, $version = File::VERSION_HEAD) {
+            new TwigFilter('path_media_library', function (MediaDocument $media, $preview = false, $version = File::VERSION_HEAD) {
                 return $this->mediaLibrary->getMediaFilePath($media, $version, false, $preview);
             }),
         ];
