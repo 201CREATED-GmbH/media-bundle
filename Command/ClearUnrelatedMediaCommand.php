@@ -4,7 +4,7 @@ namespace C201\MediaBundle\Command;
 
 use C201\MediaBundle\Model\Object\ObjectField;
 use C201\MediaBundle\Model\Object\ObjectFileContainer;
-use Doctrine\Common\Persistence\Mapping\MappingException;
+use Doctrine\Persistence\Mapping\MappingException;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

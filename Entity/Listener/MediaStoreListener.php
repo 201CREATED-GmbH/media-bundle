@@ -3,7 +3,7 @@
 namespace C201\MediaBundle\Entity\Listener;
 
 use C201\MediaBundle\Model\Object\ObjectField;
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\File\File;
 
