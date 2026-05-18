@@ -4,8 +4,6 @@ namespace C201\MediaBundle\Request\ParamConverter;
 
 use C201\MediaBundle\Manager\MediaManager;
 use C201\MediaBundle\Entity\Media;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 

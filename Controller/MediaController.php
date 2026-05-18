@@ -5,24 +5,16 @@ namespace C201\MediaBundle\Controller;
 use C201\MediaBundle\Entity\Media;
 use C201\MediaBundle\Event\MediaEvent;
 use C201\MediaBundle\Event\MediaEvents;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
-/**
- * @Route("/media")
- */
+#[Route('/media')]
 class MediaController extends Controller
 {
-    /**
-     * @Route("/download/{mediaId}/{version}/", name="c201_media_download", defaults={ "version": "head" })
-     *
-     * @param Media $media
-     *
-     * @return BinaryFileResponse
-     */
+    #[Route('/download/{mediaId}/{version}/', name: 'c201_media_download', defaults: ["version" => "head"])]
     public function downloadAction(Request $request, Media $media, $version)
     {
         $path = $this

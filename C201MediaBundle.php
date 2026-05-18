@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class C201MediaBundle extends Bundle
 {
-    public function build(ContainerBuilder $container)
+    public function build (ContainerBuilder $container) : void
     {
         parent::build($container);
 

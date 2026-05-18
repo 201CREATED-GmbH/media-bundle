@@ -12,55 +12,19 @@ use Symfony\Component\HttpFoundation\File\File;
 
 class MediaLibrary
 {
-    /**
-     * @var MediaConfiguration
-     */
-    private $configuration;
-
-    /**
-     * @var MediaManager
-     */
-    private $mediaManager;
-
-    /**
-     * @var CarefulFileStorer
-     */
-    private $storer;
-
-    /**
-     * @var FilesystemHelper
-     */
-    private $filesystemHelper;
-
-    /**
-     * @param MediaConfiguration        $configuration
-     * @param MediaManager              $mediaManager
-     * @param CarefulFileStorer $storer
-     * @param FilesystemHelper          $filesystemHelper
-     */
     public function __construct(
-        MediaConfiguration $configuration,
-        MediaManager $mediaManager,
-        CarefulFileStorer $storer,
-        FilesystemHelper $filesystemHelper
-    ) {
-        $this->configuration = $configuration;
-        $this->mediaManager = $mediaManager;
-        $this->storer = $storer;
-        $this->filesystemHelper = $filesystemHelper;
-    }
+        private readonly MediaConfiguration $configuration,
+        private readonly MediaManager $mediaManager,
+        private readonly CarefulFileStorer $storer,
+        private readonly FilesystemHelper $filesystemHelper
+    ) {}
 
-    /**
-     * @param               $owner
-     * @param File          $file
-     * @param MediaDocument $media
-     * @param string          $context
-     *
-     * @return MediaDocument
-     *
-     * @throws FileAlreadyExistsException
-     */
-    public function uploadFile($owner, File $file, MediaDocument $media = null, $context = null)
+    public function uploadFile (
+        $owner,
+        File $file,
+        ?MediaDocument $media = null,
+        ?string $context = null,
+    ) : MediaDocument|null
     {
         if ($mediaDuplicate = $this->mediaManager->findOneByOwnerAndFile($owner, $file)) {
             throw new FileAlreadyExistsException($mediaDuplicate);
