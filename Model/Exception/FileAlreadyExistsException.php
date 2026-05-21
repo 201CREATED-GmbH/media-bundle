@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Exception;
 
@@ -11,25 +11,25 @@ class FileAlreadyExistsException extends \Exception
      */
     private $media;
 
+
     /**
-     * @param Media      $media
-     * @param string     $message
-     * @param int        $code
-     * @param \Exception $previous
+     * @param string $message
+     * @param int    $code
      */
-    public function __construct(Media $media, $message = '', $code = 0, \Exception $previous = null)
+    public function __construct (Media $media, $message = '', $code = 0, ?\Exception $previous = null)
     {
         parent::__construct($message, $code, $previous);
 
         $this->media = $media;
     }
 
+
     /**
      * Gets media
      *
      * @return Media
      */
-    public function getMedia()
+    public function getMedia ()
     {
         return $this->media;
     }

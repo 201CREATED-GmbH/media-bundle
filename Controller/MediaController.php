@@ -1,29 +1,35 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Controller;
 
 use C201\MediaBundle\Entity\Media;
 use C201\MediaBundle\Event\MediaEvent;
 use C201\MediaBundle\Event\MediaEvents;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use C201\MediaBundle\Manager\DownloadHistoryManager;
+use C201\MediaBundle\Model\MediaLibrary;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/media')]
-class MediaController extends Controller
+class MediaController extends AbstractController
 {
-    #[Route('/download/{mediaId}/{version}/', name: 'c201_media_download', defaults: ["version" => "head"])]
-    public function downloadAction(Request $request, Media $media, $version)
+    public function __construct(
+        private readonly MediaLibrary $mediaLibrary,
+        private readonly DownloadHistoryManager $downloadHistoryManager,
+        private readonly EventDispatcherInterface $eventDispatcher,
+    ) {}
+
+    #[Route('/download/{mediaId}/{version}/', name: 'c201_media_download', defaults: ['version' => 'head'])]
+    public function downloadAction(Request $request, Media $media, string $version = 'head') : BinaryFileResponse
     {
-        $path = $this
-            ->get('c201_media.media_library')
-            ->getMediaFilePath($media, $version, true);
+        $path = $this->mediaLibrary->getMediaFilePath($media, $version, true);
+        $file = $media->getFileVersion($version);
 
-        $file = $media->getFileVersion($media, $version);
-
-        $this->dispatchUploadEvent($media, $version);
+        $this->dispatchDownloadEvent($media, $version);
         $this->trackDownload($request, $media);
 
         $downloadFile = new \SplFileInfo($path);
@@ -31,40 +37,30 @@ class MediaController extends Controller
         $response = new BinaryFileResponse($downloadFile);
         $response->setContentDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            sprintf('%s.%s', preg_replace('@\.[a-z0-9]+$@i', '', $media->getName()), $downloadFile->getExtension()),
-            iconv('UTF-8', 'ASCII//TRANSLIT', $file->getName())
+            \sprintf('%s.%s', \preg_replace('@\\.[a-z0-9]+$@i', '', $media->getName()), $downloadFile->getExtension()),
+            \iconv('UTF-8', 'ASCII//TRANSLIT', $file->getName() ?? '') ?: ''
         );
 
         return $response;
     }
 
-    /**
-     * @param Request $request
-     * @param Media   $media
-     */
-    protected function trackDownload(Request $request, Media $media)
+    private function trackDownload(Request $request, Media $media) : void
     {
-        $this
-            ->get('c201_media.manager.download_history')
-            ->trackDownload(
-                $media,
-                $request->getClientIp(),
-                $request->headers->get('referer'),
-                $request->headers->get('User-Agent'),
-                $this->getUser() ? $this->getUser()->getId() : null
-            );
+        $user = $this->getUser();
+        $this->downloadHistoryManager->trackDownload(
+            $media,
+            $request->getClientIp(),
+            $request->headers->get('referer'),
+            $request->headers->get('User-Agent'),
+            $user?->getUserIdentifier(),
+        );
     }
 
-    /**
-     * @param Media $media
-     * @param       $version
-     */
-    protected function dispatchUploadEvent(Media $media, $version)
+    private function dispatchDownloadEvent(Media $media, string $version) : void
     {
-        // trigger media event
-        $this->get('event_dispatcher')->dispatch(
+        $this->eventDispatcher->dispatch(
+            new MediaEvent($media, $version, $this->getUser()),
             MediaEvents::DOWNLOAD,
-            new MediaEvent($media, $version, $this->getUser())
         );
     }
 }

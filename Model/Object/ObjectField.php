@@ -1,64 +1,43 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Object;
 
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 class ObjectField
 {
-    private $object;
-    private $field;
+    private readonly PropertyAccessorInterface $accessor;
 
-    private $accessor;
 
-    /**
-     * @param $object
-     * @param $field
-     */
-    public function __construct($object, $field)
+    public function __construct (
+        private readonly object $object,
+        private readonly string $field,
+    )
     {
-        $this->object = $object;
-        $this->field = $field;
-
         $this->accessor = PropertyAccess::createPropertyAccessor();
     }
 
-    /**
-     * Gets object
-     *
-     * @return mixed
-     */
-    public function getObject()
+
+    public function getObject () : object
     {
         return $this->object;
     }
 
-    /**
-     * Gets field
-     *
-     * @return mixed
-     */
-    public function getField()
+
+    public function getField () : string
     {
         return $this->field;
     }
 
-    /**
-     * Sets value of one object field
-     *
-     * @return string
-     */
-    public function getValue()
+
+    public function getValue () : mixed
     {
         return $this->accessor->getValue($this->object, $this->field);
     }
 
-    /**
-     * Sets value of one object field
-     *
-     * @param $value
-     */
-    public function setValue($value)
+
+    public function setValue (mixed $value) : void
     {
         $this->accessor->setValue($this->object, $this->field, $value);
     }

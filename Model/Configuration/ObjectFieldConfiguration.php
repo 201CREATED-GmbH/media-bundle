@@ -1,84 +1,48 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Configuration;
 
 class ObjectFieldConfiguration
 {
-    /**
-     * @var ObjectConfiguration
-     */
-    private $objectConfiguration;
-
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
-     * @param ObjectConfiguration $objectConfiguration
-     * @param array               $options
-     */
-    public function __construct(ObjectConfiguration $objectConfiguration, array $options = [])
+    public function __construct (
+        private readonly ObjectConfiguration $objectConfiguration,
+        private readonly array $options = [],
+    )
     {
-        $this->objectConfiguration = $objectConfiguration;
-        $this->options = $options;
     }
 
-    /**
-     * Gets uploadPath
-     *
-     * @return string
-     */
-    public function getUploadPath()
+
+    public function getUploadPath () : string
     {
         return $this->objectConfiguration->getUploadPath();
     }
 
-    /**
-     * @return string
-     */
-    public function getLiipImagineFilters()
+
+    public function getLiipImagineFilters () : array
     {
         return $this->options['liip_imagine_filters'];
     }
 
-    /**
-     * @return string
-     */
-    public function getStorage()
+
+    public function getStorage () : string
     {
         return $this->options['storage']['backend'];
     }
 
-    /**
-     * @return array
-     */
-    public function getStorageOptions()
+
+    public function getStorageOptions () : array
     {
         return $this->options['storage']['options'];
     }
 
-    /**
-     * @param string $key
-     * @param mixed  $default
-     *
-     * @return array
-     */
-    public function getStorageOption($key, $default = null)
-    {
-        if (!isset($this->options['storage']['options'][$key])) {
-            return $default;
-        }
 
-        return $this->options['storage']['options'][$key];
+    public function getStorageOption (string $key, mixed $default = null) : mixed
+    {
+        return $this->options['storage']['options'][$key] ?? $default;
     }
 
-    /**
-     * Retrieves the constraints available
-     *
-     * @return array
-     */
-    public function getConstraints()
+
+    public function getConstraints () : array
     {
         $constraints = [];
 

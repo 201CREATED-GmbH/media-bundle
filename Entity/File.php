@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Entity;
 
@@ -7,50 +7,144 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 class File
 {
-    const VERSION_HEAD = 'head';
+    public const VERSION_HEAD = 'head';
 
     #[ORM\Id]
     #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue(strategy: 'AUTO')]
-    protected $id;
+    protected ?int $id = null;
 
     #[ORM\Column(type: 'integer')]
-    protected $version;
+    protected ?int $version = null;
 
     #[ORM\Column(type: 'string')]
-    protected $name;
+    protected ?string $name = null;
 
     #[ORM\Column(type: 'string')]
-    protected $path;
+    protected ?string $path = null;
 
     #[ORM\Column(type: 'string')]
-    protected $mime;
+    protected ?string $mime = null;
 
     #[ORM\Column(type: 'string')]
-    protected $md5;
+    protected ?string $md5 = null;
 
     #[ORM\Column(type: 'integer')]
-    protected $size;
+    protected ?int $size = null;
 
-    #[ORM\ManyToOne(targetEntity: \C201\MediaBundle\Entity\Media::class, inversedBy: 'files')]
-    protected $media;
+    #[ORM\ManyToOne(targetEntity: Media::class, inversedBy: 'files')]
+    protected ?Media $media = null;
 
     #[ORM\Column(type: 'date')]
-    protected $uploadedAt;
+    protected ?\DateTime $uploadedAt = null;
 
-    public function getId() { return $this->id; }
-    public function getVersion() { return $this->version; }
-    public function setVersion($version) { $this->version = $version; return $this; }
-    public function getName() { return $this->name; }
-    public function setName($name) { $this->name = $name; return $this; }
-    public function getPath() { return $this->path; }
-    public function setPath($path) { $this->path = $path; return $this; }
-    public function getMime() { return $this->mime; }
-    public function setMime($mime) { $this->mime = $mime; return $this; }
-    public function getMd5() { return $this->md5; }
-    public function setMd5($md5) { $this->md5 = $md5; return $this; }
-    public function getSize() { return $this->size; }
-    public function setSize($size) { $this->size = $size; return $this; }
-    public function getUploadedAt() { return $this->uploadedAt; }
-    public function setUploadedAt($uploadedAt) { $this->uploadedAt = $uploadedAt; return $this; }
+
+    public function getId () : ?int
+    {
+        return $this->id;
+    }
+
+
+    public function getVersion () : ?int
+    {
+        return $this->version;
+    }
+
+
+    public function setVersion (int $version) : static
+    {
+        $this->version = $version;
+        return $this;
+    }
+
+
+    public function getName () : ?string
+    {
+        return $this->name;
+    }
+
+
+    public function setName (string $name) : static
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+
+    public function getPath () : ?string
+    {
+        return $this->path;
+    }
+
+
+    public function setPath (string $path) : static
+    {
+        $this->path = $path;
+        return $this;
+    }
+
+
+    public function getMime () : ?string
+    {
+        return $this->mime;
+    }
+
+
+    public function setMime (string $mime) : static
+    {
+        $this->mime = $mime;
+        return $this;
+    }
+
+
+    public function getMd5 () : ?string
+    {
+        return $this->md5;
+    }
+
+
+    public function setMd5 (string $md5) : static
+    {
+        $this->md5 = $md5;
+        return $this;
+    }
+
+
+    public function getSize () : ?int
+    {
+        return $this->size;
+    }
+
+
+    public function setSize (int $size) : static
+    {
+        $this->size = $size;
+        return $this;
+    }
+
+
+    public function getMedia () : ?Media
+    {
+        return $this->media;
+    }
+
+
+    public function setMedia (?Media $media) : static
+    {
+        $this->media = $media;
+        return $this;
+    }
+
+
+    public function getUploadedAt () : ?\DateTime
+    {
+        return $this->uploadedAt;
+    }
+
+
+    public function setUploadedAt (\DateTime $uploadedAt) : static
+    {
+        $this->uploadedAt = $uploadedAt;
+        return $this;
+    }
 }

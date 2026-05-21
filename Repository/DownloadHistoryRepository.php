@@ -1,59 +1,54 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Repository;
 
 use C201\MediaBundle\Entity\DownloadHistory;
 use C201\MediaBundle\Entity\Media;
-use Doctrine\MongoDB\Query;
-use Doctrine\ODM\MongoDB\DocumentRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
-class DownloadHistoryRepository extends DocumentRepository
+class DownloadHistoryRepository extends ServiceEntityRepository
 {
-    /**
-     * @param string $owner
-     * @param int    $quantity
-     *
-     * @return DownloadHistory[]
-     */
-    public function findLatestForOwner($owner, $quantity = 30)
+    public function __construct(ManagerRegistry $registry)
     {
-        return $this
-            ->createQueryBuilder()
-                ->field('owner')->equals($owner)
-                ->limit($quantity)
-                ->sort('id', 'desc')
-            ->getQuery()
-            ->execute();
+        parent::__construct($registry, DownloadHistory::class);
     }
 
     /**
-     * @param Media $media
-     * @param int   $quantity
-     *
      * @return DownloadHistory[]
      */
-    public function findLatestForMedia(Media $media, $quantity = 30)
+    public function findLatestForOwner(string $owner, int $quantity = 30) : array
     {
-        return $this
-            ->createQueryBuilder()
-                ->field('media')->equals($media->getId())
-                ->limit($quantity)
-                ->sort('id', 'desc')
+        return $this->createQueryBuilder('dh')
+            ->where('dh.owner = :owner')
+            ->setParameter('owner', $owner)
+            ->orderBy('dh.id', 'desc')
+            ->setMaxResults($quantity)
             ->getQuery()
-            ->execute();
+            ->getResult();
     }
 
     /**
-     * @param DownloadHistory $downloadHistory
-     * @param bool            $andFlush
+     * @return DownloadHistory[]
      */
-    public function save(DownloadHistory $downloadHistory, $andFlush = true)
+    public function findLatestForMedia(Media $media, int $quantity = 30) : array
     {
-        $dm = $this->getDocumentManager();
-        $dm->persist($downloadHistory);
+        return $this->createQueryBuilder('dh')
+            ->where('dh.media = :media')
+            ->setParameter('media', $media)
+            ->orderBy('dh.id', 'desc')
+            ->setMaxResults($quantity)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function save(DownloadHistory $downloadHistory, bool $andFlush = true) : void
+    {
+        $em = $this->getEntityManager();
+        $em->persist($downloadHistory);
 
         if ($andFlush) {
-            $dm->flush();
+            $em->flush();
         }
     }
 }

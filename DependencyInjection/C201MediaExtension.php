@@ -1,19 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\Exception\ParameterNotFoundException;
-use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Exception\ParameterNotFoundException;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 class C201MediaExtension extends Extension
 {
     /**
      * {@inheritdoc}
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container) : void
     {
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
@@ -22,7 +22,7 @@ class C201MediaExtension extends Extension
         $container->setParameter('c201_media.objects', $config['objects']);
 
         try {
-            $container->setParameter('twig.form.resources', array_merge(
+            $container->setParameter('twig.form.resources', \array_merge(
                 $container->getParameter('twig.form.resources'),
                 ['@C201Media/Form/fields.html.twig']
             ));
@@ -30,12 +30,13 @@ class C201MediaExtension extends Extension
             $container->setParameter('twig.form.resources', ['@C201Media/Form/fields.html.twig']);
         }
 
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('config.xml');
         $loader->load('model.xml');
 
         // load liip_imagine specific configuration, when it is registered in the kernel
         $bundles = $container->getParameter('kernel.bundles');
+
         if (isset($bundles['JMSSerializerBundle'])) {
             $loader->load('jms_serializer.xml');
         }

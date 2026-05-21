@@ -1,0 +1,6 @@
+{
+    "require-dev": {
+        "becklyn/php-cs": "^18.0",
+        "symfony/phpunit-bridge": "^6.4 || ^7.0"
+    }
+}

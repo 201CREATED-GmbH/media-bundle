@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Form\Type;
 
@@ -20,33 +20,23 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class MediaType extends AbstractType
 {
-    /**
-     * @var MediaManager
-     */
-    private $mediaManager;
-
-    /**
-     * @param MediaManager $mediaManager
-     */
-    public function __construct(MediaManager $mediaManager)
+    public function __construct (
+        private readonly MediaManager $mediaManager,
+    )
     {
-        $this->mediaManager = $mediaManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function buildForm(FormBuilderInterface $builder, array $options)
+
+    public function buildForm (FormBuilderInterface $builder, array $options) : void
     {
         $builder
             ->add('value', HiddenType::class)
             ->addViewTransformer(new MediaTransformer($this->mediaManager, $options))
-            ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options) {
+            ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options) : void {
                 if ($options['can_remove'] && $event->getData()) {
                     $event->getForm()->add('remove', CheckboxType::class);
                 }
-            })
-        ;
+            });
 
         if ($options['can_upload']) {
             $builder->add('upload', FileType::class, [
@@ -55,29 +45,21 @@ class MediaType extends AbstractType
         }
 
         if ($options['media_library_owner'] && $options['media_library_context']) {
-            $builder->add(
-                'library',
-                EntityType::class,
-                [
-                    'required'      => $options['required'],
-                    'class'         => Media::class,
-                    'query_builder' => function (MediaRepository $repository) use ($options) {
-                        return $repository->queryBuilderForOwnerAndContext(
-                            $options['media_library_owner'],
-                            $options['media_library_context']
-                        );
-                    }
-                ]
-            );
+            $builder->add('library', EntityType::class, [
+                'required' => $options['required'],
+                'class' => Media::class,
+                'query_builder' => function (MediaRepository $repository) use ($options) {
+                    return $repository->queryBuilderForOwnerAndContext(
+                        $options['media_library_owner'],
+                        $options['media_library_context'],
+                    );
+                },
+            ]);
         }
     }
 
-    /**
-     * @param FormView      $view
-     * @param FormInterface $form
-     * @param array         $options
-     */
-    public function buildView(FormView $view, FormInterface $form, array $options)
+
+    public function buildView (FormView $view, FormInterface $form, array $options) : void
     {
         $view->vars['preview'] = $options['preview'];
         $view->vars['can_upload'] = $options['can_upload'];
@@ -86,24 +68,21 @@ class MediaType extends AbstractType
         $view->vars['media_library_context'] = $options['media_library_context'];
     }
 
-    /**
-     * @param OptionsResolver $resolver
-     */
-    public function configureOptions(OptionsResolver $resolver)
+
+    public function configureOptions (OptionsResolver $resolver) : void
     {
-        $resolver->setDefaults(
-            [
-                'preview'               => false,
-                'can_upload'            => false,
-                'can_remove'            => false,
-                // can choose from media library
-                'media_library_owner'   => null,
-                'media_library_context' => null,
-                'file_constraints'      => [],
-            ]
-        );
+        $resolver->setDefaults([
+            'preview' => false,
+            'can_upload' => false,
+            'can_remove' => false,
+            'media_library_owner' => null,
+            'media_library_context' => null,
+            'file_constraints' => [],
+        ]);
     }
-    public function getBlockPrefix()
+
+
+    public function getBlockPrefix () : string
     {
         return 'media';
     }

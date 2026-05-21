@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Manager;
 
@@ -10,86 +10,39 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class MediaManager
 {
-    /**
-     * @var MediaRepository
-     */
-    protected $repository;
+    public function __construct(
+        protected readonly MediaRepository $repository,
+    ) {}
 
-    /**
-     * @param MediaRepository $repository
-     */
-    public function __construct(MediaRepository $repository)
-    {
-        $this->repository = $repository;
-    }
-
-    /**
-     * @param string $id
-     *
-     * @return MediaDocument
-     */
-    public function findOneById($id)
+    public function findOneById(mixed $id) : ?MediaDocument
     {
         return $this->repository->find($id);
     }
 
-    /**
-     * Checks if the uploaded file exists already
-     *
-     * @param string $owner
-     * @param File   $file
-     *
-     * @return MediaDocument
-     */
-    public function findOneByOwnerAndFile($owner, File $file)
+    public function findOneByOwnerAndFile(mixed $owner, File $file) : ?MediaDocument
     {
         return $this->repository->findMediaByHash($owner, $this->getFileHash($file));
     }
 
-    /**
-     * @param $owner
-     * @param $id
-     *
-     * @return MediaDocument
-     */
-    public function findOneByOwnerAndId($owner, $id)
+    public function findOneByOwnerAndId(mixed $owner, mixed $id) : ?MediaDocument
     {
         return $this->repository->findOneByOwnerAndId($owner, $id);
     }
 
-    /**
-     * @param $owner
-     * @param $name
-     *
-     * @return MediaDocument
-     */
-    public function findOneByOwnerAndName($owner, $name)
+    public function findOneByOwnerAndName(mixed $owner, string $name) : ?MediaDocument
     {
         return $this->repository->findOneMediaByName($owner, $name);
     }
 
     /**
-     * @param object $owner
-     * @param array  $contexts
-     *
      * @return MediaDocument[]
      */
-    public function findAllByOwnerAndContext($owner, $contexts = [])
+    public function findAllByOwnerAndContext(mixed $owner, array $contexts = []) : array
     {
         return $this->repository->findMedias($owner, $contexts);
     }
 
-
-    /**
-     * Creates a media instance which is a container for many file objects
-     *
-     * @param        $owner
-     * @param File   $file
-     * @param string $context
-     *
-     * @return MediaDocument
-     */
-    public function createMedia($owner, File $file, $context = null)
+    public function createMedia(mixed $owner, File $file, ?string $context = null) : MediaDocument
     {
         $media = new MediaDocument();
         $media->setOwner($this->repository->getOwnerString($owner));
@@ -105,20 +58,12 @@ class MediaManager
             $media->setName($file->getBasename());
         }
 
-        // generate ID
         $this->repository->save($media);
 
         return $media;
     }
 
-    /**
-     * Add a file to a already existant media file
-     *
-     * @param File $file
-     *
-     * @return MediaDocument
-     */
-    public function addFile(MediaDocument $media, File $file)
+    public function addFile(MediaDocument $media, File $file) : FileDocument
     {
         $version = $media->getVersions() + 1;
         $media->setVersions($version);
@@ -134,7 +79,7 @@ class MediaManager
             $fileD->setMime($file->getClientMimeType());
         } else {
             $fileD->setName($file->getBasename());
-            $fileD->setMime($file->getMimeType());
+            $fileD->setMime($file->getMimeType() ?? '');
         }
 
         $media->addFile($fileD);
@@ -142,43 +87,23 @@ class MediaManager
         return $fileD;
     }
 
-    /**
-     * @param File $file
-     *
-     * @return string
-     */
-    protected function getFileHash(File $file)
+    protected function getFileHash(File $file) : string
     {
-        return md5_file($file);
+        return \md5_file($file->getPathname()) ?: '';
     }
 
-    /**
-     * Saves media instance to the database
-     *
-     * @param MediaDocument $media
-     */
-    public function save(MediaDocument $media)
+    public function save(MediaDocument $media) : void
     {
         $this->repository->save($media);
     }
 
-    /**
-     * Deletes item (save delete)
-     *
-     * @param MediaDocument $media
-     */
-    public function delete(MediaDocument $media)
+    public function delete(MediaDocument $media) : void
     {
         $media->delete();
         $this->repository->save($media);
     }
 
-    /**
-     * Undeletes item (save delete)
-     *
-     * @param MediaDocument $media
-     */
-    public function undelete(MediaDocument $media)
+    public function undelete(MediaDocument $media) : void
     {
         $media->undelete();
         $this->repository->save($media);

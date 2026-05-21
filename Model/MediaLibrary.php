@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model;
 
@@ -12,19 +12,25 @@ use Symfony\Component\HttpFoundation\File\File;
 
 class MediaLibrary
 {
-    public function __construct(
+    public function __construct (
         private readonly MediaConfiguration $configuration,
         private readonly MediaManager $mediaManager,
         private readonly CarefulFileStorer $storer,
-        private readonly FilesystemHelper $filesystemHelper
-    ) {}
+        private readonly FilesystemHelper $filesystemHelper,
+    )
+    {
+    }
 
+
+    /**
+     * @throws FileAlreadyExistsException
+     */
     public function uploadFile (
-        $owner,
+        mixed $owner,
         File $file,
         ?MediaDocument $media = null,
         ?string $context = null,
-    ) : MediaDocument|null
+    ) : ?MediaDocument
     {
         if ($mediaDuplicate = $this->mediaManager->findOneByOwnerAndFile($owner, $file)) {
             throw new FileAlreadyExistsException($mediaDuplicate);
@@ -38,7 +44,7 @@ class MediaLibrary
 
         $filename = $this->storer->store(
             $file,
-            'media/'.$this->filesystemHelper->filesystemize($media->getId())
+            'media/' . $this->filesystemHelper->filesystemize((string) $media->getId()),
         );
 
         $fileD->setPath($filename);
@@ -48,32 +54,19 @@ class MediaLibrary
         return $media;
     }
 
-    /**
-     * @param MediaDocument $media
-     * @param string        $context
-     */
-    public function changeContext(MediaDocument $media, $context)
+
+    public function changeContext (MediaDocument $media, string $context) : void
     {
         if ($media->getDeletedAt()) {
             $media->undelete();
         }
 
         $media->setContext($context);
-
         $this->mediaManager->save($media);
     }
 
-    /**
-     * Retrieves the path relative to the upload directory
-     *
-     * @param string $media
-     * @param string $version
-     * @param bool   $absolute
-     * @param bool   $preview
-     *
-     * @return string
-     */
-    public function getMediaFilePath($media, $version = FileDocument::VERSION_HEAD, $absolute = false, $preview = false)
+
+    public function getMediaFilePath (mixed $media, string $version = FileDocument::VERSION_HEAD, bool $absolute = false, bool $preview = false) : string
     {
         if (!$media instanceof MediaDocument) {
             $media = $this->mediaManager->findOneById($media);
@@ -83,25 +76,28 @@ class MediaLibrary
             return '';
         }
 
-        $filename = $file->getPath();
+        $filename = $file->getPath() ?? '';
+
         if ($preview) {
-            if (preg_match('@\.(pdf)$@i', $filename)) {
+            if (\preg_match('@\\.(pdf)$@i', $filename)) {
                 $filename .= '.png';
-            } elseif (preg_match('@\.(jpe?g|png)$@i', $filename)) {
-                // do nothing, not previewable
-            } else {
+            }
+            elseif (\preg_match('@\\.(jpe?g|png)$@i', $filename)) {
+                // not previewable
+            }
+            else {
                 return '';
             }
         }
 
-        return '/'.ltrim(
-            sprintf(
+        return '/' . \ltrim(
+            \sprintf(
                 '/%s/media/%s/%s',
                 $absolute ? $this->configuration->getBaseUploadPath() : 'uploads',
-                $this->filesystemHelper->filesystemize($media->getId()),
-                $filename
+                $this->filesystemHelper->filesystemize((string) $media->getId()),
+                $filename,
             ),
-            '/'
+            '/',
         );
     }
 }

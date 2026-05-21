@@ -1,30 +1,23 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Storage;
 
 class StorageBackendPool
 {
-    protected $storageBackends = [];
+    /** @var StorageBackendInterface[] */
+    protected array $storageBackends = [];
 
-    /**
-     * @param string                  $key
-     * @param StorageBackendInterface $storageBackend
-     */
-    public function addStorageBackend($key, StorageBackendInterface $storageBackend)
+
+    public function addStorageBackend (string $key, StorageBackendInterface $storageBackend) : void
     {
         $this->storageBackends[$key] = $storageBackend;
     }
 
-    /**
-     * @param $key
-     *
-     * @return StorageBackendInterface
-     */
-    public function getStorageBackend($key)
+
+    public function getStorageBackend (string $key) : StorageBackendInterface
     {
         if (!isset($this->storageBackends[$key])) {
-            $message = sprintf('Storage Backend for key "%s" not available.', $key);
-            throw new \OutOfBoundsException($message);
+            throw new \OutOfBoundsException(\sprintf('Storage Backend for key "%s" not available.', $key));
         }
 
         return $this->storageBackends[$key];

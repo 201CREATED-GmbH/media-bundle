@@ -1,28 +1,37 @@
 {
   "name": "201created/media-bundle",
-  "type": "symfony-bundle",
   "description": "This Bundle provides a nice abstraction for uploading files",
+  "license": "MIT",
+  "type": "symfony-bundle",
   "keywords": [
     "mail"
   ],
-  "homepage": "https://github.com/201CREATED-GmbH/media-bundle",
-  "license": "MIT",
   "authors": [
     {
       "name": "Christoph Hautzinger",
       "email": "ch@201created.de"
     }
   ],
+  "homepage": "https://github.com/201CREATED-GmbH/media-bundle",
   "require": {
     "php": ">=8.1",
-    "symfony/framework-bundle": "^6.4 || ^7.0",
-    "symfony/form": "^6.4 || ^7.0",
-    "symfony/console": "^6.4 || ^7.0",
-    "symfony/filesystem": "^6.4 || ^7.0",
-    "symfony/finder": "^6.4 || ^7.0",
-    "symfony/expression-language": "^6.4 || ^7.0",
-    "doctrine/doctrine-bundle": "^1.6.10|^2.0.0",
-    "twig/twig": "^2.12|^3.0"
+    "ext-fileinfo": "*",
+    "ext-iconv": "*",
+    "doctrine/doctrine-bundle": "^1.6.10 || ^2.0.0",
+    "doctrine/orm": "^2.14 || ^3.0",
+    "symfony/console": "^6.4 || ^7.4",
+    "symfony/expression-language": "^6.4 || ^7.4",
+    "symfony/filesystem": "^6.4 || ^7.4",
+    "symfony/finder": "^6.4 || ^7.4",
+    "symfony/form": "^6.4 || ^7.4",
+    "symfony/framework-bundle": "^6.4 || ^7.4",
+    "symfony/security-core": "^6.4 || ^7.4",
+    "twig/twig": "^2.12 || ^3.0",
+    "ext-imagick": "*"
+  },
+  "require-dev": {
+    "jms/serializer": "^3.0",
+    "liip/imagine-bundle": "^2.0"
   },
   "autoload": {
     "psr-4": {

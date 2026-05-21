@@ -1,62 +1,39 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Manager;
 
 use C201\MediaBundle\Entity\DownloadHistory;
 use C201\MediaBundle\Entity\Media;
 use C201\MediaBundle\Repository\DownloadHistoryRepository;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 class DownloadHistoryManager
 {
-    /**
-     * @var DownloadHistoryRepository
-     */
-    protected $repository;
+    public function __construct(
+        protected readonly DownloadHistoryRepository $repository,
+    ) {}
 
     /**
-     * @param DownloadHistoryRepository $repository
-     */
-    public function __construct(DownloadHistoryRepository $repository)
-    {
-        $this->repository = $repository;
-    }
-
-    /**
-     * @param Media   $media
-     * @param integer $quantity
-     *
      * @return DownloadHistory[]
      */
-    public function findLastForMedia(Media $media, $quantity)
+    public function findLastForMedia(Media $media, int $quantity = 30) : array
     {
         return $this->repository->findLatestForMedia($media, $quantity);
     }
 
     /**
-     * @param string  $owner
-     * @param integer $quantity
-     *
      * @return DownloadHistory[]
      */
-    public function findLastForOwner($owner, $quantity)
+    public function findLastForOwner(string $owner, int $quantity = 30) : array
     {
-        return $this->repository->findLatestForMedia($owner, $quantity);
+        return $this->repository->findLatestForOwner($owner, $quantity);
     }
 
-    /**
-     * @param Media  $media
-     * @param string $ip
-     * @param string $referer
-     * @param string $userAgent
-     * @param string $user
-     */
-    public function trackDownload(Media $media, $ip, $referer, $userAgent, $user = null)
+    public function trackDownload(Media $media, ?string $ip, ?string $referer, ?string $userAgent, mixed $user = null) : void
     {
         $downloadHistory = new DownloadHistory();
-        $downloadHistory->setOwner($media->getOwner());
+        $downloadHistory->setOwner((string) $media->getOwner());
         $downloadHistory->setMedia($media);
-        $downloadHistory->setUser($user);
+        $downloadHistory->setUser(null !== $user ? (string) $user : null);
         $downloadHistory->setIp($ip);
         $downloadHistory->setReferer($referer);
         $downloadHistory->setUserAgent($userAgent);

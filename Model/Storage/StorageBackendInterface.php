@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Storage;
 
@@ -8,21 +8,8 @@ use Symfony\Component\HttpFoundation\File\File;
 
 interface StorageBackendInterface
 {
-    /**
-     * @param ObjectFieldConfiguration $config
-     * @param ObjectField              $objectField
-     * @param File                     $file
-     *
-     * @return bool
-     */
-    public function store(ObjectFieldConfiguration $config, ObjectField $objectField, File $file);
+    public function store (ObjectFieldConfiguration $config, ObjectField $objectField, File $file) : bool;
 
-    /**
-     * @param ObjectFieldConfiguration $config
-     * @param ObjectField              $objectField
-     * @param bool                     $preview
-     *
-     * @return string
-     */
-    public function getRelativePath(ObjectFieldConfiguration $config, ObjectField $objectField, $preview = false);
+
+    public function getRelativePath (ObjectFieldConfiguration $config, ObjectField $objectField, bool $preview = false) : string;
 }

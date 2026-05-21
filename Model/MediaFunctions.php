@@ -1,39 +1,30 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model;
 
 class MediaFunctions
 {
-    public function filesystemize($path, $amount)
+    public function filesystemize (string $path, mixed $amount) : string
     {
         return $path;
     }
 
-    public function hash($length)
+
+    public function hash (int $length) : string
     {
-        return substr(md5(uniqid(microtime())), 0, $length);
+        return \substr(\md5(\uniqid((string) \microtime(), true)), 0, $length);
     }
 
-    /**
-     * Normalizes a filename and remove all characters not allowed in a filename
-     */
-    public function normalizeFilename($filename)
-    {
-        // replace non letter or digits by _
-        $filename = preg_replace('#[^\\pL\d._-]+#u', '_', $filename);
 
-        // transliterate
-        if (function_exists('iconv'))
-        {
-            $filename = iconv('utf-8', 'us-ascii//TRANSLIT', $filename);
+    public function normalizeFilename (string $filename) : string
+    {
+        $filename = \preg_replace('#[^\\pL\\d._-]+#u', '_', $filename) ?? $filename;
+
+        if (\function_exists('iconv')) {
+            $filename = \iconv('utf-8', 'us-ascii//TRANSLIT', $filename) ?: $filename;
         }
 
-        // trim
-        $filename = trim($filename, '_');
-
-        // remove unwanted characters
-        $filename = preg_replace('#[^_\w.-]+#', '', $filename);
-
-        return $filename;
+        $filename = \trim($filename, '_');
+        return \preg_replace('#[^_\\w.-]+#', '', $filename) ?? $filename;
     }
 }

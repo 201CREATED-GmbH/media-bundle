@@ -1,112 +1,116 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Command;
 
+use C201\MediaBundle\Model\Configuration\MediaConfiguration;
+use C201\MediaBundle\Model\Media;
 use C201\MediaBundle\Model\Object\ObjectField;
 use C201\MediaBundle\Model\Object\ObjectFileContainer;
-use Doctrine\Persistence\Mapping\MappingException;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use C201\MediaBundle\Model\Storage\PathParser;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
-class ClearUnrelatedMediaCommand extends ContainerAwareCommand
+#[AsCommand(name: 'c201-media:clear-unrelated', description: 'Removes unrelated media files from the filesystem')]
+class ClearUnrelatedMediaCommand extends Command
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
+    public function __construct (
+        private readonly Media $media,
+        private readonly PathParser $pathParser,
+        private readonly MediaConfiguration $configuration,
+        private readonly ManagerRegistry $doctrine,
+        private readonly string $projectDir,
+    )
     {
-        $this
-            ->setName('c201-media:clear-unrelated')
-            ->setDescription('Hello PhpStorm')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Remove all the files from the filesystem')
-        ;
+        parent::__construct();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+
+    protected function configure () : void
     {
+        $this->addOption('force', null, InputOption::VALUE_NONE, 'Remove all the files from the filesystem');
+    }
+
+
+    protected function execute (InputInterface $input, OutputInterface $output) : int
+    {
+        $webDir = \realpath($this->projectDir . '/public');
         $searchIn = [];
         $whitelist = [];
 
-        $media = $this->getContainer()->get('c201_media.media');
-        $pathParser = $this->getContainer()->get('c201_media.model.path_parser');
-        $configuration = $this->getContainer()->get('c201_media.configuration');
-        $webDir = realpath($this->getContainer()->getParameter('kernel.project_dir').'/public');
-
-        foreach ($configuration->getClassesUnderControl() as $class) {
+        foreach ($this->configuration->getClassesUnderControl() as $class) {
             try {
-                $all = $this->getContainer()->get('doctrine_mongodb')->getRepository($class)->findAll();
+                $all = $this->doctrine->getRepository($class)->findAll();
+
                 foreach ($all as $object) {
-                    $objectConfiguration = $configuration->getObjectConfiguration($object);
+                    $objectConfiguration = $this->configuration->getObjectConfiguration($object);
 
                     $folderHasContents = false;
+
                     foreach ($objectConfiguration->getFields() as $field) {
                         $objectField = new ObjectField($object, $field);
-                        $objectFieldConfiguration = $configuration->getObjectFieldConfiguration($objectField);
+                        $objectFieldConfiguration = $this->configuration->getObjectFieldConfiguration($objectField);
+
                         if ('file' !== $objectFieldConfiguration->getStorage()) {
                             continue;
                         }
+
                         if (!$objectField->getValue()) {
                             continue;
                         }
 
-                        $whitelist[] = $webDir . $media->getPath($objectField);
-
+                        $whitelist[] = $webDir . $this->media->getPath($objectField);
                         $folderHasContents = true;
                     }
+
                     if ($folderHasContents) {
-                        $searchIn[] = $webDir . '/uploads/' . $pathParser->parse($objectConfiguration->getUploadPath(), new ObjectFileContainer($object));
+                        $searchIn[] = $webDir . '/uploads/' . $this->pathParser->parse($objectConfiguration->getUploadPath(), new ObjectFileContainer($object));
                     }
                 }
-            }
-            catch (MappingException $e) {
-                $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
+            } catch (\Exception $e) {
+                $output->writeln(\sprintf('<error>%s</error>', $e->getMessage()));
             }
         }
 
-        // `$searchIn` now contains all the folders we are allowed to watch into for deleting
-        // `$whitelist` now contains all the files better NOT! to remove
-
         $finder = new Finder();
-        $finder->files()->in($webDir.'/uploads')->exclude(['media']);
+        $finder->files()->in($webDir . '/uploads')->exclude(['media']);
 
         $unrelated = [];
 
         foreach ($finder as $file) {
-            // skip all files we are not allowed to handle because they come from a different directory
-            if (!in_array($file->getPath(), $searchIn)) {
+            if (!\in_array($file->getPath(), $searchIn, true)) {
                 continue;
             }
 
-            // so when we have a file here that is not used from the media system, we will add it to `$unrelated` array
-            if (!in_array($file->getPathname(), $whitelist)) {
+            if (!\in_array($file->getPathname(), $whitelist, true)) {
                 $unrelated[] = $file;
             }
         }
 
         if (!$unrelated) {
             $output->writeln('Nothing to delete. Everything looks fine! Exiting.');
-            return;
+            return Command::SUCCESS;
         }
 
-        // show info message
         foreach ($unrelated as $file) {
-            $output->writeln(sprintf('The file <info>%s</info> is unrelated and will be deleted.', $file->getRelativePathname()));
+            $output->writeln(\sprintf('The file <info>%s</info> is unrelated and will be deleted.', $file->getRelativePathname()));
         }
 
-
-        $dialog = $this->getHelper('dialog');
         if ($input->getOption('force')) {
-            if ($dialog->askConfirmation($output, '<question>Deleting all the files?</question>', false)) {
-                $filesystem = new Filesystem();
-                $filesystem->remove($unrelated);
+            $helper = $this->getHelper('question');
+            $question = new ConfirmationQuestion('<question>Deleting all the files?</question> ', false);
+
+            if ($helper->ask($input, $output, $question)) {
+                (new Filesystem())->remove($unrelated);
             }
         }
+
+        return Command::SUCCESS;
     }
 }

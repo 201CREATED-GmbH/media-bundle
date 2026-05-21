@@ -1,65 +1,48 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model;
 
 use C201\MediaBundle\Model\Configuration\MediaConfiguration;
+use C201\MediaBundle\Model\Exception\NoObjectConfigurationAvailableException;
+use C201\MediaBundle\Model\Exception\NoObjectFieldConfigurationAvailableException;
 use C201\MediaBundle\Model\Object\ObjectField;
 use C201\MediaBundle\Model\Storage\StorageBackendPool;
 use Symfony\Component\HttpFoundation\File\File;
 
 class Media
 {
-    /**
-     * @var MediaConfiguration
-     */
-    protected $configuration;
-
-    /**
-     * @var StorageBackendPool
-     */
-    protected $storageBackendPool;
-
-    /**
-     * @param MediaConfiguration $configuration
-     * @param StorageBackendPool  $storageBackendPool
-     */
-    public function __construct(MediaConfiguration $configuration, StorageBackendPool $storageBackendPool)
+    public function __construct (
+        protected readonly MediaConfiguration $configuration,
+        protected readonly StorageBackendPool $storageBackendPool,
+    )
     {
-        $this->configuration = $configuration;
-        $this->storageBackendPool = $storageBackendPool;
     }
 
+
     /**
-     * Stores a file
-     *
-     * @param ObjectField  $objectField
-     * @param File $file
-     *
-     * @return bool
+     * @throws NoObjectConfigurationAvailableException
+     * @throws NoObjectFieldConfigurationAvailableException
      */
-    public function store(ObjectField $objectField, File $file)
+    public function store (ObjectField $objectField, File $file) : bool
     {
         $config = $this->configuration->getObjectFieldConfiguration($objectField);
 
-        return $this
-            ->storageBackendPool
+        return $this->storageBackendPool
             ->getStorageBackend($config->getStorage())
-                ->store($config, $objectField, $file);
+            ->store($config, $objectField, $file);
     }
 
+
     /**
-     * @param ObjectField $objectField
-     * @param bool        $preview
-     *
-     * @return string
+     * @throws NoObjectConfigurationAvailableException
+     * @throws NoObjectFieldConfigurationAvailableException
      */
-    public function getPath(ObjectField $objectField, $preview = false)
+    public function getPath (ObjectField $objectField, bool $preview = false) : string
     {
         $config = $this->configuration->getObjectFieldConfiguration($objectField);
 
-        return $this
-            ->storageBackendPool
+        return $this->storageBackendPool
             ->getStorageBackend($config->getStorage())
-                ->getRelativePath($config, $objectField, $preview);
+            ->getRelativePath($config, $objectField, $preview);
     }
 }

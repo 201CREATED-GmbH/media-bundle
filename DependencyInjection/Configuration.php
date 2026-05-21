@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\DependencyInjection;
 
@@ -39,7 +39,7 @@ class Configuration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                                 ->arrayNode('constraints')
-                                    ->defaultValue(array())
+                                    ->defaultValue([])
                                     ->prototype('array')
                                     ->children()
                                         ->variableNode('options')->end()
@@ -49,8 +49,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
-            ->end()
-        ;
+            ->end();
 
         return $treeBuilder;
     }

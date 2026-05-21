@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\DependencyInjection\Compiler;
 
@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\Reference;
  */
 class StorageBackendPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container) : void
     {
         $definition = $container->getDefinition('c201_media.storage.storage_backend_pool');
 

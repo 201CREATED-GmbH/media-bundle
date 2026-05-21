@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Configuration;
 
@@ -6,49 +6,39 @@ use C201\MediaBundle\Model\Exception\NoObjectFieldConfigurationAvailableExceptio
 
 class ObjectConfiguration
 {
-    /**
-     * @var array
-     */
-    private $options;
-
-
-    public function __construct(array $options = [])
+    public function __construct (
+        private readonly array $options = [],
+    )
     {
-        $this->options = $options;
     }
 
-    /**
-     * Gets uploadPath
-     *
-     * @return mixed
-     */
-    public function getUploadPath()
+
+    public function getUploadPath () : string
     {
         return $this->options['upload_path'];
     }
 
+
     /**
-     * @param $field
-     *
-     * @return ObjectFieldConfiguration
-     *
      * @throws NoObjectFieldConfigurationAvailableException
      */
-    public function getFieldConfiguration($field)
+    public function getFieldConfiguration (string $field) : ObjectFieldConfiguration
     {
         if (!isset($this->options['medias'][$field])) {
-            $message = sprintf('Field "%s" is not configured for MediaBundle', $field);
-            throw new NoObjectFieldConfigurationAvailableException($message);
+            throw new NoObjectFieldConfigurationAvailableException(
+                \sprintf('Field "%s" is not configured for MediaBundle', $field)
+            );
         }
 
         return new ObjectFieldConfiguration($this, $this->options['medias'][$field]);
     }
 
+
     /**
-     * @return array
+     * @return string[]
      */
-    public function getFields()
+    public function getFields () : array
     {
-        return array_keys($this->options['medias']);
+        return \array_keys($this->options['medias']);
     }
 }

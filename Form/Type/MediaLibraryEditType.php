@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Form\Type;
 
@@ -9,45 +9,29 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class MediaLibraryEditType extends AbstractType
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm (FormBuilderInterface $builder, array $options) : void
     {
-        $builder
-            ->add('name', null, ['required' => false]);
+        $builder->add('name', null, ['required' => false]);
 
         if ($options['contexts']) {
-            $builder
-                ->add(
-                    'context',
-                    ChoiceType::class,
-                    [
-                        'required' => true,
-                        'choices'  => $options['contexts'],
-                    ]
-                );
-        } else {
-            $builder
-                ->add(
-                    'context',
-                    null,
-                    [
-                        'required' => false,
-                    ]
-                );
+            $builder->add('context', ChoiceType::class, [
+                'required' => true,
+                'choices' => $options['contexts'],
+            ]);
+        }
+        else {
+            $builder->add('context', null, ['required' => false]);
         }
     }
 
-    /**
-     * @param OptionsResolver $resolver
-     */
-    public function configureOptions(OptionsResolver $resolver)
+
+    public function configureOptions (OptionsResolver $resolver) : void
     {
         $resolver->setDefaults(['contexts' => []]);
     }
 
-    public function getBlockPrefix()
+
+    public function getBlockPrefix () : string
     {
         return 'c201_media__media_libarary_edit';
     }

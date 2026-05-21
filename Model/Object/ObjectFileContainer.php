@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Object;
 
@@ -9,28 +9,29 @@ class ObjectFileContainer
     protected $object;
     protected $file;
 
+
     /**
-     * @param      $object
-     * @param File $file
      */
-    public function __construct($object, File $file = null)
+    public function __construct ($object, ?File $file = null)
     {
         $this->object = $object;
-        $this->file   = $file;
+        $this->file = $file;
     }
+
 
     /**
      * @return mixed
      */
-    public function getObject()
+    public function getObject ()
     {
         return $this->object;
     }
 
+
     /**
-     * @return \Symfony\Component\HttpFoundation\File\File
+     * @return File
      */
-    public function getFile()
+    public function getFile ()
     {
         return $this->file;
     }

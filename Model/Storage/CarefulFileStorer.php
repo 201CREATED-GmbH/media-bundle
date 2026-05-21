@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Storage;
 
@@ -8,46 +8,28 @@ use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * Saves an uploaded file to a directory but does not overwrite another file
+ * Saves an uploaded file to a directory without overwriting an existing file.
  */
 class CarefulFileStorer
 {
-    /**
-     * @var PostProcessorPool
-     */
-    private $postProcessors;
-
-    /**
-     * @var MediaConfiguration
-     */
-    private $configuration;
-
-    /**
-     * @param MediaConfiguration $configuration
-     * @param PostProcessorPool  $postProcessors
-     */
-    public function __construct(MediaConfiguration $configuration, PostProcessorPool $postProcessors)
+    public function __construct (
+        private readonly MediaConfiguration $configuration,
+        private readonly PostProcessorPool $postProcessors,
+    )
     {
-        $this->postProcessors = $postProcessors;
-        $this->configuration = $configuration;
     }
 
-    /**
-     * @param File   $file
-     * @param string $path
-     *
-     * @return string
-     */
-    public function store(File $file, $path)
+
+    public function store (File $file, string $path) : string
     {
-        $filename = '';
         $discriminator = 0;
+
         do {
             $filename = $this->polishFileName($file, $discriminator++);
-            $absoluteFilePath = $this->configuration->getBaseUploadPath().'/'.$path.'/'.$filename;
-        } while (file_exists($absoluteFilePath));
+            $absoluteFilePath = $this->configuration->getBaseUploadPath() . '/' . $path . '/' . $filename;
+        } while (\file_exists($absoluteFilePath));
 
-        $file = $file->move($this->configuration->getBaseUploadPath().'/'.$path, $filename);
+        $file = $file->move($this->configuration->getBaseUploadPath() . '/' . $path, $filename);
 
         foreach ($this->postProcessors as $postProcessor) {
             $postProcessor->process($file);
@@ -56,27 +38,22 @@ class CarefulFileStorer
         return $filename;
     }
 
-    /**
-     * @param File $file
-     * @param int  $discriminator
-     *
-     * @return mixed
-     */
-    protected function polishFileName(File $file, $discriminator = 0)
+
+    protected function polishFileName (File $file, int $discriminator = 0) : string
     {
         if ($file instanceof UploadedFile) {
             $filename = $file->getClientOriginalName();
             $extension = $file->getClientOriginalExtension();
-        } else {
+        }
+        else {
             $filename = $file->getBasename();
             $extension = $file->getExtension();
         }
 
-        $filename = preg_replace('@[^a-z0-9_.-]+@i', '', $filename);
+        $filename = \preg_replace('@[^a-z0-9_.-]+@i', '', $filename) ?? $filename;
 
         if ($discriminator) {
-            // replace ".doc" with "_1.doc"
-            $filename = str_replace('.'.$extension, sprintf('_%d.%s', $discriminator, $extension), $filename);
+            $filename = \str_replace('.' . $extension, \sprintf('_%d.%s', $discriminator, $extension), $filename);
         }
 
         return $filename;

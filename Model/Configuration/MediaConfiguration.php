@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Configuration;
 
@@ -8,88 +8,67 @@ use C201\MediaBundle\Model\Object\ObjectField;
 
 class MediaConfiguration
 {
-    /**
-     * @var string
-     */
-    private $baseUploadPath;
-
-    /**
-     * @var array
-     */
-    private $objects;
-
-    /**
-     * @param string $baseUploadPath
-     * @param array  $objects
-     */
-    public function __construct($baseUploadPath, array $objects = [])
+    public function __construct (
+        private readonly string $baseUploadPath,
+        private readonly array $objects = [],
+    )
     {
-        $this->baseUploadPath = $baseUploadPath;
-        $this->objects = $objects;
     }
 
+
     /**
-     * @param $object
-     *
-     * @return ObjectConfiguration
-     *
      * @throws NoObjectConfigurationAvailableException
      */
-    public function getObjectConfiguration($object)
+    public function getObjectConfiguration (object $object) : ObjectConfiguration
     {
-        // loop all configurations and find the first matching one
         foreach ($this->objects as $class => $configuration) {
-            if (!is_a($object, $class)) {
+            if (!\is_a($object, $class)) {
                 continue;
             }
             return new ObjectConfiguration($configuration);
         }
 
-        $message = sprintf('Object "%s" is not configured for MediaBundle', get_class($object));
-        throw new NoObjectConfigurationAvailableException($message);
+        throw new NoObjectConfigurationAvailableException(
+            \sprintf('Object "%s" is not configured for MediaBundle', $object::class)
+        );
     }
 
+
     /**
-     * @param ObjectField $objectField
-     *
-     * @return ObjectFieldConfiguration
-     *
      * @throws NoObjectConfigurationAvailableException
      * @throws NoObjectFieldConfigurationAvailableException
      */
-    public function getObjectFieldConfiguration(ObjectField $objectField)
+    public function getObjectFieldConfiguration (ObjectField $objectField) : ObjectFieldConfiguration
     {
         return $this
             ->getObjectConfiguration($objectField->getObject())
             ->getFieldConfiguration($objectField->getField());
     }
 
-    /**
-     * @return array
-     */
-    public function getClassesUnderControl()
-    {
-        return array_keys($this->objects);
-    }
 
     /**
-     * @param $object
-     *
-     * @return array
+     * @return string[]
      */
-    public function getFieldsUnderControl($object)
+    public function getClassesUnderControl () : array
+    {
+        return \array_keys($this->objects);
+    }
+
+
+    /**
+     * @return string[]
+     */
+    public function getFieldsUnderControl (object $object) : array
     {
         try {
             return $this->getObjectConfiguration($object)->getFields();
-        } catch (NoObjectConfigurationAvailableException $e) {
+        } catch (NoObjectConfigurationAvailableException) {
             return [];
         }
     }
 
-    /**
-     * @return string
-     */
-    public function getBaseUploadPath()
+
+    public function getBaseUploadPath () : string
     {
         return $this->baseUploadPath;
     }

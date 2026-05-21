@@ -1,22 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Model\Storage\PostProcessor;
 
 class PdfFirstPagePreview implements PostProcessorInterface
 {
     /**
-     * @param \SplFileInfo $file
      */
-    public function process(\SplFileInfo $file)
+    public function process (\SplFileInfo $file) : void
     {
-        if ('pdf' !== strtolower($file->getExtension())) {
+        if ('pdf' !== \strtolower($file->getExtension())) {
             return;
         }
 
         $imagick = new \Imagick();
-        $imagick->readImage($file.'[0]');
+        $imagick->readImage($file . '[0]');
         $imagick->setImageFormat('png');
-        $imagick->writeImage(sprintf('%s.png', $file));
+        $imagick->writeImage(\sprintf('%s.png', $file));
         $imagick->clear();
     }
 }

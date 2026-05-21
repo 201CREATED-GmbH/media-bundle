@@ -1,160 +1,106 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace C201\MediaBundle\Repository;
 
 use C201\MediaBundle\Entity\Media;
-use Doctrine\ORM\EntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 
-class MediaRepository extends EntityRepository
+class MediaRepository extends ServiceEntityRepository
 {
-    /**
-     * Retrieves for a select list all the elements
-     *
-     * @param $owner
-     * @param $context
-     *
-     * @return \Doctrine\ORM\QueryBuilder
-     */
-    public function queryBuilderForOwnerAndContext($owner, $context)
+    public function __construct(ManagerRegistry $registry)
     {
-        return $this
-            ->createQueryBuilder('m')
+        parent::__construct($registry, Media::class);
+    }
+
+    public function queryBuilderForOwnerAndContext(mixed $owner, string $context) : QueryBuilder
+    {
+        return $this->createQueryBuilder('m')
             ->andWhere('m.context = :context')
             ->andWhere('m.owner = :owner')
             ->andWhere('m.deletedAt IS NULL')
-            ->setParameters([
+            ->setParameters(new ArrayCollection([
                 'context' => $context,
-                'owner'   => $owner,
-            ])
-            ->orderBy('id', 'desc')
-        ;
+                'owner' => $this->getOwnerString($owner),
+            ]))
+            ->orderBy('m.id', 'desc');
     }
 
-    /**
-     * Checks if a file was uploaded already
-     *
-     * @param $owner
-     * @param $hash
-     *
-     * @return Media
-     */
-    public function findMediaByHash($owner, $hash)
+    public function findMediaByHash(mixed $owner, string $hash) : ?Media
     {
-        return $this
-            ->createQueryBuilder()
-            ->field('owner')->equals($this->getOwnerString($owner))
-            ->field('files.md5')->equals($hash)
+        return $this->createQueryBuilder('m')
+            ->join('m.files', 'f')
+            ->where('m.owner = :owner')
+            ->andWhere('f.md5 = :hash')
+            ->setParameter('owner', $this->getOwnerString($owner))
+            ->setParameter('hash', $hash)
             ->getQuery()
-            ->getSingleResult()
-            ;
+            ->getOneOrNullResult();
     }
 
-
-    /**
-     * @param $ownerObject
-     *
-     * @return string
-     */
-    public function getOwnerString($ownerObject)
+    public function getOwnerString(mixed $ownerObject) : string
     {
-        if (is_object($ownerObject) && method_exists($ownerObject, 'getId')) {
-            $ownerObject = sprintf('%s-%s', get_class($ownerObject), $ownerObject->getId());
-            $ownerObject = str_replace('MongoDBODMProxies\\__CG__\\', '', $ownerObject);
+        if (\is_object($ownerObject) && \method_exists($ownerObject, 'getId')) {
+            return \sprintf('%s-%s', $ownerObject::class, $ownerObject->getId());
         }
-
 
         return (string) $ownerObject;
     }
 
-    /**
-     * Finds a single Media by its id
-     *
-     * @param  $id
-     *
-     * @return Media
-     */
-    public function findOneByOwnerAndId($owner, $id)
+    public function findOneByOwnerAndId(mixed $owner, mixed $id) : ?Media
     {
-        return $this->findOneBy(
-            [
-                'owner' => $this->getOwnerString($owner),
-                'id'    => $id,
-            ]
-        );
+        return $this->findOneBy([
+            'owner' => $this->getOwnerString($owner),
+            'id' => $id,
+        ]);
+    }
+
+    public function findOneMediaByName(mixed $owner, string $name) : ?Media
+    {
+        return $this->findOneBy([
+            'owner' => $this->getOwnerString($owner),
+            'name' => $name,
+        ]);
     }
 
     /**
-     * @param object $owner
-     * @param string $name
-     *
-     * @return Media
+     * @return Media[]
      */
-    public function findOneMediaByName($owner, $name)
+    public function findMedias(mixed $owner, array $contexts = []) : array
     {
-        return $this->findOneBy(
-            [
-                'owner' => $this->getOwnerString($owner),
-                'name'  => $name,
-            ]
-        );
-    }
-
-
-    /**
-     * Finds all medias
-     *
-     * @param string   $owner
-     * @param string[] $contexts
-     *
-     * @return mixed
-     */
-    public function findMedias($owner, $contexts = [])
-    {
-        $qb = $this
-            ->createQueryBuilder()
-            // select only the latest uploaded file
-            ->selectSlice('files', -1);
+        $qb = $this->createQueryBuilder('m')
+            ->where('m.owner = :owner')
+            ->andWhere('m.deletedAt IS NULL')
+            ->setParameter('owner', $this->getOwnerString($owner))
+            ->orderBy('m.id', 'desc');
 
         if ($contexts) {
-            $qb->field('context')->in($contexts);
+            $qb->andWhere('m.context IN (:contexts)')
+               ->setParameter('contexts', $contexts);
         }
 
-        $qb
-            ->field('owner')->equals($this->getOwnerString($owner))
-            ->field('deletedAt')->equals(null)
-            ->sort('_id', 'desc')
-        ;
-
-        return $qb
-            ->getQuery()
-            ->execute();
+        return $qb->getQuery()->getResult();
     }
 
-    /**
-     * @param Media $media
-     * @param bool  $andFlush
-     */
-    public function save(Media $media, $andFlush = true)
+    public function save(Media $media, bool $andFlush = true) : void
     {
-        $entityManager = $this->getEntityManager();
-        $entityManager->persist($media);
+        $em = $this->getEntityManager();
+        $em->persist($media);
 
         if ($andFlush) {
-            $entityManager->flush();
+            $em->flush();
         }
     }
 
-    /**
-     * @param Media $media
-     * @param bool  $andFlush
-     */
-    public function remove(Media $media, $andFlush = true)
+    public function remove(Media $media, bool $andFlush = true) : void
     {
-        $entityManager = $this->getEntityManager();
-        $entityManager->remove($media);
+        $em = $this->getEntityManager();
+        $em->remove($media);
 
         if ($andFlush) {
-            $entityManager->flush();
+            $em->flush();
         }
     }
 }
